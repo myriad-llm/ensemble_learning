@@ -11,11 +11,11 @@ from sklearn.impute import SimpleImputer
 
 
 # 读取CSV文件
-train_data = pd.read_csv('../data/fine-data/trainSet_res.csv')
-train_labels = pd.read_csv('../data/fine-data/trainSet_ans.csv')
+train_data = pd.read_csv('../data/raw/trainSet_res.csv')
+train_labels = pd.read_csv('../data/raw/trainSet_ans.csv')
 
 # 读取验证集
-validation_data = pd.read_csv('../data/fine-data/validationSet_res.csv')
+validation_data = pd.read_csv('../data/raw/validationSet_res.csv')
 
 # 转换时间格式
 train_data['start_time'] = pd.to_datetime(train_data['start_time'], format='%Y%m%d%H%M%S')
@@ -169,7 +169,7 @@ test_set = pd.DataFrame(test_set, columns=columns)
 # 使用 autogluon 训练
 from autogluon.tabular import TabularPredictor
 # 输入数据X_train, y_train
-model = TabularPredictor(label='is_sa', eval_metric='f1_macro', problem_type='binary').fit(train_set, time_limit=720, presets='best_quality')
+model = TabularPredictor(label='is_sa', eval_metric='f1_macro', problem_type='binary').fit(train_set, time_limit=3600, presets='best_quality')
 
 # %%
 # 在testset 上计算指标
