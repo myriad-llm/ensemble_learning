@@ -31,6 +31,9 @@ validation_data['update_time'] = pd.to_datetime(validation_data['update_time'])
 validation_data['date'] = pd.to_datetime(validation_data['date'])
 
 # %%
+train_data.shape
+
+# %%
 # 为每条记录添加start_time_diff，记录 start_time 与上一条记录的 start_time 之差 (单位：秒)
 start_time_diff = train_data.groupby('msisdn')['start_time'].diff().dt.total_seconds().fillna(0).reset_index(drop=True)
 # 将该列加入到数据集中
@@ -38,6 +41,9 @@ train_data['start_time_diff'] = start_time_diff.copy()
 # time_diff_start2end = train_data.groupby('msisdn')['end_time'].diff().dt.total_seconds().fillna(0)
 start_time_diff = validation_data.groupby('msisdn')['start_time'].diff().dt.total_seconds().fillna(0).reset_index(drop=True)
 validation_data['start_time_diff'] = start_time_diff.copy()
+
+# %%
+train_data.groupby('msisdn')['home_area_code'].nunique()
 
 # %% [markdown]
 # 数据特征处理
@@ -71,12 +77,12 @@ def aggregate_features(data):
     'dayofweek': [
         ('dayofweek_std', 'std'), 
         ('magic_dayofweek', lambda x: x.value_counts().mean()), 
-        ('work_day_num', lambda x: x[x.isin(['1', '2', '3', '4', '5'])].count()), 
-        ('weekend_num', lambda x: x[x.isin(['6', '7'])].count())
+        ('work_day_num', lambda x: x[x.isin([1,2,3,4,5])].count()), 
+        ('weekend_num', lambda x: x[x.isin([6,7])].count())
     ],
-    'home_area_code': [
-        ('home_area_code_nunique', 'nunique')
-    ],
+    # 'home_area_code': [
+    #     ('home_area_code_nunique', 'nunique')
+    # ],
     'visit_area_code': [
         ('visit_area_code_nunique', 'nunique')
     ],
@@ -93,8 +99,8 @@ def aggregate_features(data):
         ('account_person_num', 'nunique')
     ],
     'a_serv_type': [
-        ('call_num', lambda x: x[x.isin(['01', '03'])].count()), 
-        ('called_num', lambda x: x[x == '02'].count())
+        ('call_num', lambda x: x[x.isin([1, 3])].count()), 
+        ('called_num', lambda x: x[x == 2].count())
     ],
     'start_time_diff': [
         ('start_time_diff_mean', 'mean'), 
@@ -118,7 +124,7 @@ validation_features = validation_features.reset_index()
 # 合并标签数据
 train_features = train_features.merge(train_labels, on='msisdn', how='left')
 # 打印结果
-print(train_features)
+train_features
 
 # %%
 y = train_features['is_sa']
@@ -131,6 +137,10 @@ print('样本个数：{}; 正样本占{:.2%}; 负样本占{:.2%}'.format(n_sampl
                                                    n_pos_sample / n_sample,
                                                    n_neg_sample / n_sample))
 print('特征维数：', X.shape[1])
+
+
+# %%
+X.head()
 
 # %%
 
@@ -164,25 +174,41 @@ train_set = np.c_[X_train, y_train]
 train_set = pd.DataFrame(train_set, columns=columns)
 test_set = np.c_[X_test, y_test]
 test_set = pd.DataFrame(test_set, columns=columns)
+all_set = pd.concat([train_set, test_set], axis=0).reset_index(drop=True)
+
+# %%
+all_set.max()
+
+# %%
+
 
 # %%
 # 使用 autogluon 训练
 from autogluon.tabular import TabularPredictor
 # 输入数据X_train, y_train
-model = TabularPredictor(label='is_sa', eval_metric='f1_macro', problem_type='binary').fit(train_set, time_limit=3600, presets='best_quality')
+model = TabularPredictor(label='is_sa', eval_metric='f1', problem_type='binary').fit(all_set, num_bag_folds=5, num_bag_sets=1, num_stack_levels=1)
+
+# %%
+print(model.evaluate(all_set))
+
+# %%
+model.feature_importance(all_set)
+
+# %%
+# leaderboard
+leaderboard = model.leaderboard(all_set, silent=True)
+print(leaderboard)
+leaderboard
 
 # %%
 # 在testset 上计算指标
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-y_pred = model.predict(test_set)
-y_true = test_set['is_sa']
+
+y_pred = model.predict(all_set)
+y_true = all_set['is_sa']
 print(classification_report(y_true, y_pred))
 print(confusion_matrix(y_true, y_pred))
-
-# leaderboard
-leaderboard = model.leaderboard(test_set, silent=True)
-print(leaderboard)
 
 # %%
 X_validation = validation_features.drop(['msisdn'], axis=1)
@@ -198,8 +224,7 @@ validation_results['is_sa'] = y_validation_pred.astype(int)
 print(validation_results.describe())
 
 # 保存结果到CSV文件
-validation_results.to_csv('./vaild_g.csv', index=False)
-
+validation_results.to_csv('./vaild_large_data.csv', index=False)
 print("Validation predictions saved to validation_predictions.csv")
 
 
