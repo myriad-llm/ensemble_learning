@@ -121,36 +121,6 @@ if __name__ == "__main__":
     )
     train_labels = pd.read_csv("../data/raw/trainSet_ans.csv", dtype={"msisdn": "str"})
 
-    # 读取验证集
-    validation_data = pd.read_csv(
-        "../data/raw/validationSet_res_with_distances.csv", dtype={"msisdn": "str"}
-    )
-
-    # 转换时间格式
-    train_data["start_time"] = pd.to_datetime(
-        train_data["start_time"], format="%Y%m%d%H%M%S"
-    )
-    train_data["end_time"] = pd.to_datetime(
-        train_data["end_time"], format="%Y%m%d%H%M%S"
-    )
-    train_data["open_datetime"] = pd.to_datetime(
-        train_data["open_datetime"], format="%Y%m%d%H%M%S"
-    )
-    train_data["update_time"] = pd.to_datetime(train_data["update_time"])
-    train_data["date"] = pd.to_datetime(train_data["date"])
-
-    validation_data["start_time"] = pd.to_datetime(
-        validation_data["start_time"], format="%Y%m%d%H%M%S"
-    )
-    validation_data["end_time"] = pd.to_datetime(
-        validation_data["end_time"], format="%Y%m%d%H%M%S"
-    )
-    validation_data["open_datetime"] = pd.to_datetime(
-        validation_data["open_datetime"], format="%Y%m%d%H%M%S", errors="coerce"
-    )
-    validation_data["update_time"] = pd.to_datetime(validation_data["update_time"])
-    validation_data["date"] = pd.to_datetime(validation_data["date"])
-
     addition_train_data = []
     addition_train_labels = []
 
@@ -177,3 +147,6 @@ if __name__ == "__main__":
     addition_train_data = pd.concat(addition_train_data)
     addition_train_labels = pd.concat(addition_train_labels)
     addition_train_data.shape
+    # 将新数据加入到train_data中
+    train_data = pd.concat([train_data, addition_train_data], ignore_index=True).reset_index(drop=True)
+    train_labels = pd.concat([train_labels, addition_train_labels], ignore_index=True).reset_index(drop=True)
