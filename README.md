@@ -18,13 +18,17 @@
 
 `TEST_RAITO`: `TEST_RAITO=0.2` means 20% original labeled data is used to test model.
 
+Feature selection is also very important. After reviewing the feature importance, you can remove some features that are not important to retrain the model in order to improve the model's performance.
+
 ## dev
 
-`*.ipynb` in `./code` folder without cell output.
+- In the `./code` folder:
 
-In `./best_archive` folder:
+Store `*.ipynb` (Jupyter Notebook) files without cell outputs.
 
-1. `*.ipynb`  with cell output to store the best model.
-2. `AutogluonModels` to store the best model.
-3. `*.csv` to store the best model's prediction.
-4. all code files in `./code` folder.
+- In the `./best_archive` folder:
+
+1. Store `*.ipynb` files with cell outputs to save the execution record of the best model.
+2. Store the best model in the AutogluonModels directory.
+3. Store the best model's predictions in `*.csv` files.
+4. Copy all code files from the code folder.
