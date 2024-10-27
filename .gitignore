@@ -236,3 +236,7 @@ $RECYCLE.BIN/
 
 data
 archive
+
+public_data/
+self_data/
+**/AutogluonModels/
