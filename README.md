@@ -36,6 +36,10 @@ Store `*.ipynb` (Jupyter Notebook) files without cell outputs.
 - In the `./best_archive` folder:
 
 1. Store `*.ipynb` files with cell outputs to save the execution record of the best model.
-2. Store the best model in the AutogluonModels directory.
+2. Store the best model in the `AutogluonModels` directory. (Don't push, gitignore it)
 3. Store the best model's predictions in `*.csv` files.
 4. Copy all code files from the code folder.
+
+example:
+
+![best_archive](./.assets/best_archive.png)
