@@ -8,6 +8,13 @@
 
 ## data
 
+```shell
+mkdir ./public_data
+mkdir ./self_data
+```
+
+Put the data from `self_data.7z` into `./self_data`
+
 `./self_data/processed` used to cache processed data. After augmenting data and train-test spliting, the processed data will be saved in this folder. If you want to re-augment data, you must delete this folder and rerun your code.
 
 ## use
