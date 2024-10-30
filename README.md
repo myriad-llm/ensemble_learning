@@ -27,6 +27,12 @@ Put the data from `self_data.7z` into `./self_data`
 
 Feature selection is also very important. After reviewing the feature importance, you can remove some features that are not important to retrain the model in order to improve the model's performance.
 
+`presets` in autogluon `TabularPredictor`: [autogluon-docs:presets](https://auto.gluon.ai/stable/tutorials/tabular/tabular-essentials.html#presets). This is important for the model to achieve better performance.
+
+What not supported but you can do manually:
+
+`Recursive Feature Elimination` (RFE) is a feature selection method. This is not supported, but you can use it manually to select features, `TabularPredictor` offer you the feature importance.
+
 ## dev
 
 - In the `./code` folder:
