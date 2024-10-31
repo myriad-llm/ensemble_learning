@@ -22,6 +22,7 @@ class Augmentation:
         self.label = label
         self.call_count = 0
         self.id = df[id_column_name].iloc[0]
+        assert isinstance(self.id, str), f"ID must be a string, but got {type(self.id)}"
         self.id_column_name = id_column_name
         self.label_column_name = label_column_name
 
