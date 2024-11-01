@@ -29,6 +29,8 @@ In `self_data/processed_<f1>` folder, you can find the processed data for the no
 
 `TEST_RAITO`: `TEST_RAITO=0.2` means 20% original labeled data is used to test model.
 
+`SUB_PROCESSED_DIR`: `SUB_PROCESSED_DIR='processed'` means the processed data is saved in `./self_data/processed` folder.
+
 Feature selection is also very important. After reviewing the feature importance, you can remove some features that are not important to retrain the model in order to improve the model's performance.
 
 `presets` in autogluon `TabularPredictor`: [autogluon-docs:presets](https://auto.gluon.ai/stable/tutorials/tabular/tabular-essentials.html#presets). This is important for the model to achieve better performance.
@@ -53,3 +55,9 @@ Store `*.ipynb` (Jupyter Notebook) files without cell outputs.
 example:
 
 ![best_archive](./.assets/best_archive.png)
+
+## how to reproduce the best archive
+
+1. Put original data in the `./self_data` folder, or put the cached processed data in the `./self_data/processed_<f1>` folder(recommended). The division of the test set of data is random, so the reproduction of the original data may not be reliable compared to the cached processed data.
+2. Copy the code in the `./best_archive/f1_<f1>/code` folder to the `./code` folder.
+3. Run the code in the `./code/main_<f1>.ipynb` file.
