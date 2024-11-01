@@ -17,6 +17,10 @@ Put the data from `self_data.7z` into `./self_data`
 
 `./self_data/processed` used to cache processed data. After augmenting data and train-test spliting, the processed data will be saved in this folder. If you want to re-augment data, you must delete this folder and rerun your code.
 
+Where to get data for `best_archive`:
+
+In `self_data/processed_<f1>` folder, you can find the processed data for the now best model. You can use this data to reproduce the best model.
+
 ## use
 
 `ALL`: `ALL=True` means use all labeled data to train model. `ALL=False` means use part of labeled data to train model, and the rest of labeled data is used to test model.
