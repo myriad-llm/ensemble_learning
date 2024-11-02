@@ -1,7 +1,10 @@
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import pandas as pd
 from tqdm import tqdm
 import time
 from utils.augmentation import Augmentation
+import multiprocessing
+import warnings
 
 def augment_data(train_data, train_labels, test_labels):
     """
@@ -17,6 +20,8 @@ def augment_data(train_data, train_labels, test_labels):
         pd.DataFrame: 增强后的训练标签。
         pd.DataFrame: 增强后的标签。
     """
+    warnings.warn("This function will be deprecated in the future, use augment_data_parallel instead.", DeprecationWarning)
+
     addition_train_data = []
     addition_train_labels = []
 
@@ -37,6 +42,71 @@ def augment_data(train_data, train_labels, test_labels):
             res_df, res_labels = aug.times(ratio=ratio_range, times=times, method='mask')
             addition_train_data.append(res_df)
             addition_train_labels.append(res_labels)
+
+    addition_train_data = pd.concat(addition_train_data)
+    addition_train_labels = pd.concat(addition_train_labels)
+
+    # 将新数据加入到train_data中
+    train_data = pd.concat([train_data, addition_train_data], ignore_index=True).reset_index(drop=True)
+    train_labels = pd.concat([train_labels, addition_train_labels], ignore_index=True).reset_index(drop=True)
+
+    # 按照 msisdn, start_time 排序
+    sort_start_time = time.time()
+    train_data = train_data.sort_values(by=['msisdn', 'start_time']).reset_index(drop=True)
+    train_labels = train_labels.sort_values(by=['msisdn']).reset_index(drop=True)
+    print('sort time:', time.time() - sort_start_time)
+
+    labels_aug = pd.concat([train_labels, test_labels], ignore_index=True).reindex()
+
+    return train_data, train_labels, labels_aug
+
+def _augment_group(group_data, train_labels):
+    addition_train_data = []
+    addition_train_labels = []
+    times = 2
+    ratio_range = 0.1
+    for msisdn, group in group_data.groupby('msisdn'):
+        if msisdn == 0:
+            continue
+        label = train_labels[train_labels['msisdn'] == msisdn].iloc[0]['is_sa']
+        aug = Augmentation(group, label, 'msisdn', 'is_sa')
+        if label == 1:
+            res_df, res_labels = aug.times(ratio=ratio_range, times=3+4*times, method='mask')
+            addition_train_data.append(res_df)
+            addition_train_labels.append(res_labels)
+        else:
+            res_df, res_labels = aug.times(ratio=ratio_range, times=times, method='mask')
+            addition_train_data.append(res_df)
+            addition_train_labels.append(res_labels)
+    return pd.concat(addition_train_data), pd.concat(addition_train_labels)
+
+def augment_data_parallel(train_data, train_labels, test_labels, max_workers=0):
+    if max_workers == 0:
+        max_workers = multiprocessing.cpu_count()
+
+    # Split the data into max_workers groups
+    groups = [group for _, group in train_data.groupby('msisdn')]
+    print("len(groups):", len(groups))
+    chunk_size = len(groups) // max_workers
+    chunks = [pd.concat(groups[i - chunk_size:i]) for i in range(chunk_size, len(groups), chunk_size)]
+    # BUG: 获取 len(groups) % max_workers 个数据合入到最后一个 chunk 中
+    if len(groups) % max_workers != 0:
+        rest_df = pd.concat(groups[-(len(groups) % max_workers):])
+        chunks[-1] = pd.concat([chunks[-1], rest_df])
+
+    addition_train_data = []
+    addition_train_labels = []
+
+    print("parallel augmenting data...")
+    start_time = time.time()
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(_augment_group, chunk, train_labels) for chunk in chunks]
+        print("collecting results...")
+        for future in as_completed(futures):
+            res_data, res_labels = future.result()
+            addition_train_data.append(res_data)
+            addition_train_labels.append(res_labels)
+    print("augmenting done, time:", time.time() - start_time)
 
     addition_train_data = pd.concat(addition_train_data)
     addition_train_labels = pd.concat(addition_train_labels)

@@ -56,6 +56,10 @@ example:
 
 ![best_archive](./.assets/best_archive.png)
 
+Some functions is moved to `./code/functions.py` to make the code in `main.ipynb` more simple and clear. 
+
+**If you change `./code/functions.py`, you must to restart ipykernel to refresh the functions or else the changes will not take effect.**
+
 ## how to reproduce the best archive
 
 1. Put original data in the `./self_data` folder, or put the cached processed data in the `./self_data/processed_<f1>` folder(recommended). The division of the test set of data is random, so the reproduction of the original data may not be reliable compared to the cached processed data.
