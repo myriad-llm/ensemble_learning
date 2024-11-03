@@ -5,6 +5,7 @@ from tqdm import tqdm
 import time
 from utils.augmentation import Augmentation
 import warnings
+from functools import partial
 
 def augment_data(train_data, train_labels, test_labels):
     """
@@ -226,6 +227,11 @@ def aggregate_features(data):
     return agg_features
 
 class _CustomAggregator:
+
+    @staticmethod
+    def quantile(x, q):
+        return x.quantile(q)
+
     @staticmethod
     def quantile_25(x):
         return x.quantile(0.25)
@@ -301,15 +307,16 @@ def _aggregate_features(data, agg_params):
 
 # 并行处理函数
 def aggregate_features_parallel(data, max_workers=0):
+
     agg_params = {
         'call_duration': [
             ('sum', 'sum'), 
             ('mean', 'mean'), 
             ('max', 'max'), 
             ('std', 'std'),
-            ('quantile_25', _CustomAggregator.quantile_25),
-            ('quantile_50', _CustomAggregator.quantile_50),
-            ('quantile_75', _CustomAggregator.quantile_75),
+            ('quantile_25', partial(_CustomAggregator.quantile, q=0.25)),
+            ('quantile_50', partial(_CustomAggregator.quantile, q=0.5)),
+            ('quantile_75', partial(_CustomAggregator.quantile, q=0.75)),
         ],
         'cfee': [
             ('sum', 'sum'),
